@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/28680042/README.md)
 # 学生管理系统 — 数据库课程设计
 
 **选题**：学生管理系统（仿 USTC 教务系统）  
