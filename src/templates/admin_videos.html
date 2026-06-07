@@ -1,0 +1,41 @@
+<!-- 管理员视频管理 — 查看/删除全部课程视频 -->
+{% extends "base.html" %}{% block title %}视频管理{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-camera-video"></i> 视频管理</h4>
+
+{% if videos %}
+<div class="table-responsive"><table class="table table-hover"><thead><tr><th>标题</th><th>课程</th><th>上传教师</th><th>大小</th><th>上传时间</th><th>操作</th></tr></thead><tbody>
+{% for v in videos %}
+<tr>
+  <td><i class="bi bi-play-btn text-primary"></i> {{ v[2] }}</td>
+  <td>{{ v[9] }}</td>
+  <td>{{ v[10] or '-' }}</td>
+  <td>{% if v[5] %}{{ "%.1f"|format(v[5]/1048576) }} MB{% else %}-{% endif %}</td>
+  <td style="font-size:12px">{{ v[7] }}</td>
+  <td>
+    <button class="btn btn-outline-primary btn-sm me-1" onclick="playVideo('/uploads/videos/{{ v[4] }}','{{ v[2] }}')"><i class="bi bi-play-fill"></i></button>
+    <a href="/admin/videos/del/{{ v[0] }}" class="btn btn-outline-danger btn-sm" onclick="return confirm('确定删除「{{ v[2] }}」？')"><i class="bi bi-trash"></i></a>
+  </td>
+</tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}<div class="card"><div class="card-body text-muted text-center py-4">暂无课程视频</div></div>{% endif %}
+
+<div class="modal fade" id="videoModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+<div class="modal-header"><h6 id="videoTitle">视频播放</h6><div><button class="btn btn-sm btn-outline-light me-1" onclick="fsVideo()" title="全屏"><i class="bi bi-fullscreen"></i></button><button class="btn-close" data-bs-dismiss="modal"></button></div></div>
+<div class="modal-body p-0"><video id="videoPlayer" controls playsinline style="width:100%;max-height:70vh" src=""></video></div>
+</div></div></div>
+<script>
+function playVideo(url, title){
+    document.getElementById('videoTitle').textContent=title;
+    var v=document.getElementById('videoPlayer');
+    v.src=url; v.load(); v.play();
+    new bootstrap.Modal(document.getElementById('videoModal')).show();
+}
+function fsVideo(){
+    window.open(document.getElementById('videoPlayer').src, '_blank');
+}
+document.getElementById('videoModal').addEventListener('hidden.bs.modal',function(){
+    var v=document.getElementById('videoPlayer'); v.pause(); v.src='';
+});
+</script>
+{% endblock %}

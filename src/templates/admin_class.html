@@ -1,0 +1,52 @@
+<!-- 班级管理 — 年级→专业两层折叠，查看/新增/删除班级 -->
+{% extends "base.html" %}{% block title %}班级管理{% endblock %}
+{% block content %}<h4><i class="bi bi-people"></i> 班级管理</h4>
+<button class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addM"><i class="bi bi-plus-circle"></i> 新增班级</button>
+
+{% set grades = [] %}
+{% for c in classes %}{% set g = (2026 - c[3])|string + '年级' %}{% if g not in grades %}{% set _ = grades.append(g) %}{% endif %}{% endfor %}
+
+{% for g in grades %}
+<div class="card mb-3 border-0 shadow-sm">
+  <div class="card-header bg-white fw-bold d-flex justify-content-between border-bottom" data-bs-toggle="collapse" data-bs-target="#cg_{{ loop.index }}" style="cursor:pointer">
+    <span>📚 {{ g }}</span>
+    {% set cnt = namespace(n=0) %}
+    {% for c in classes %}{% set cg = (2026 - c[3])|string + '年级' %}{% if cg==g %}{% set cnt.n = cnt.n + 1 %}{% endif %}{% endfor %}
+    <span class="text-muted" style="font-size:13px">{{ cnt.n }}个班 <i class="bi bi-chevron-down"></i></span>
+  </div>
+  <div id="cg_{{ loop.index }}" class="collapse">
+    <table class="table table-hover table-sm mb-0">
+      <thead><tr><th style="width:60px">编号</th><th>名称</th><th style="width:14%">专业</th><th style="width:10%">操作</th></tr></thead>
+      <tbody>
+      {% set majors_in_grade = [] %}
+      {% for c in classes %}{% set cg = (2026 - c[3])|string + '年级' %}{% if cg==g and c[2] not in majors_in_grade %}{% set _ = majors_in_grade.append(c[2]) %}{% endif %}{% endfor %}
+      {% for mg in majors_in_grade %}
+      <tr style="background:#f1f5f9"><td colspan="4" style="font-size:13px;font-weight:600;color:#334155"><i class="bi bi-building"></i> {{ mg }}</td></tr>
+      {% for c in classes %}{% set cg = (2026 - c[3])|string + '年级' %}
+      {% if cg==g and c[2]==mg %}
+      <tr><td>{{ c[0] }}</td><td>{{ c[1] }}</td><td><span class="text-muted">{{ c[2] }}</span></td>
+      <td><button class="btn btn-outline-primary btn-action" onclick="editClass({{ c[0] }},'{{ c[1] }}',{{ c[4] }},{{ c[3] }})" title="编辑"><i class="bi bi-pencil"></i></button> <a href="/admin/class/del/{{ c[0] }}" class="btn btn-outline-danger btn-action" onclick="return confirm('确定删除?')"><i class="bi bi-trash"></i></a></td></tr>
+      {% endif %}{% endfor %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endfor %}
+
+<div class="modal fade" id="addM"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>新增班级</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form method="POST" action="/admin/class/add"><div class="modal-body"><div class="mb-3"><label>班级名称</label><input name="name" class="form-control" placeholder="如：计科2501" required></div><div class="mb-3"><label>所属专业</label><select name="major_id" class="form-select">{% for m in majors %}<option value="{{ m[0] }}">{{ m[1] }}</option>{% endfor %}</select></div><div class="mb-3"><label>入学年份</label><select name="enroll_year" class="form-select">{% for y in range(2026,2018,-1) %}<option value="{{ y }}" {% if y==2025 %}selected{% endif %}>{{ y }}</option>{% endfor %}</select></div></div><div class="modal-footer"><button class="btn btn-primary">添加</button></div></form></div></div></div>
+
+<div class="modal fade" id="editM"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>编辑班级</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form method="POST" id="editForm"><div class="modal-body"><div class="mb-3"><label>班级名称</label><input name="name" id="editName" class="form-control" required></div><div class="mb-3"><label>所属专业</label><select name="major_id" id="editMajor" class="form-select">{% for m in majors %}<option value="{{ m[0] }}">{{ m[1] }}</option>{% endfor %}</select></div><div class="mb-3"><label>入学年份</label><select name="enroll_year" id="editYear" class="form-select">{% for y in range(2026,2018,-1) %}<option value="{{ y }}">{{ y }}</option>{% endfor %}</select></div></div><div class="modal-footer"><button class="btn btn-primary">保存</button></div></form></div></div></div>
+
+<script>
+function editClass(id, name, majorId, year) {
+    document.getElementById('editForm').action = '/admin/class/edit/' + id;
+    document.getElementById('editName').value = name;
+    document.getElementById('editMajor').value = majorId;
+    document.getElementById('editYear').value = year;
+    new bootstrap.Modal(document.getElementById('editM')).show();
+}
+</script>
+{% endblock %}

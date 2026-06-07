@@ -1,0 +1,10 @@
+<!-- 奖项审批 — 学生奖项申请的查看与审批 -->
+{% extends "base.html" %}{% block title %}奖项审批{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-trophy"></i> 奖项审批</h4>
+{% if awards %}<div class="card"><table class="table table-hover mb-0"><thead><tr><th>学号</th><th>学生</th><th>奖项名称</th><th>描述</th><th>证书</th><th>时间</th><th>状态</th><th>操作</th></tr></thead><tbody>
+{% for a in awards %}<tr><td><code>{{ a[1] }}</code></td><td>{{ a[10] }}</td><td>{{ a[2] }}</td><td>{{ a[3] or '' }}</td>
+<td>{% if a[4] %}<a href="/uploads/awards/{{ a[4] }}" target="_blank" class="btn btn-outline-info btn-action"><i class="bi bi-file-earmark"></i> 查看</a>{% else %}-{% endif %}</td>
+<td>{{ a[6] }}</td><td><span class="badge {% if a[5]=='approved' %}bg-success{% elif a[5]=='rejected' %}bg-danger{% else %}bg-warning{% endif %}">{{ {'pending':'待审批','approved':'已通过','rejected':'已拒绝'}.get(a[5],a[5]) }}</span></td>
+<td>{% if a[5]=='pending' %}<form method="POST" action="/admin/award/approve/{{ a[0] }}" class="d-inline"><input name="comment" placeholder="审批意见" class="form-control form-control-sm d-inline" style="width:80px"><button type="submit" name="action" value="approve" class="btn btn-success btn-action">通过</button><button type="submit" name="action" value="reject" class="btn btn-danger btn-action">拒绝</button></form>{% else %}-{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="card p-5 text-center text-muted"><i class="bi bi-trophy fs-1"></i><p class="mt-2">暂无奖项申请</p></div>{% endif %}
+{% endblock %}

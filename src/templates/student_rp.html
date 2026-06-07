@@ -1,0 +1,7 @@
+<!-- 学生奖惩记录 — 查看个人奖惩历史 -->
+{% extends "base.html" %}{% block title %}奖惩记录{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-award"></i> 奖惩记录</h4>
+{% if rps %}<div class="card"><table class="table table-hover mb-0"><thead><tr><th>类型</th><th>名称</th><th>描述</th><th>日期</th><th>操作员</th><th>状态</th></tr></thead><tbody>
+{% for r in rps %}<tr><td>{% if r[2]=='reward' %}<span class="badge bg-success">奖励</span>{% else %}<span class="badge bg-danger">处分</span>{% endif %}</td><td>{{ r[3] }}</td><td>{{ r[4] or '' }}</td><td>{{ r[5] }}</td><td><small>{{ r[8] or '-' }}</small></td><td><span class="badge {% if r[6]=='effective' %}bg-success{% else %}bg-secondary{% endif %}">{{ {'effective':'生效','canceled':'已撤销'}.get(r[6],r[6]) }}</span></td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="card p-5 text-center text-muted"><i class="bi bi-award fs-1"></i><p class="mt-2">暂无奖惩记录</p></div>{% endif %}
+{% endblock %}

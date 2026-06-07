@@ -1,0 +1,16 @@
+<!-- 管理员仪表盘 — 系统统计数据概览 + 快速导航 -->
+{% extends "base.html" %}{% block title %}仪表盘{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-speedometer2"></i> 管理员仪表盘</h4>
+<div class="row g-3">
+{% set cols=[('college','学院','primary','bi-building'),('major','专业','primary','bi-buildings'),('class','班级','success','bi-people'),('student','学生','warning','bi-person-badge'),('teacher','教师','danger','bi-person-workspace'),('admin','管理员','purple','bi-shield-lock'),('course','课程','info','bi-book'),('sc','选课','purple','bi-clipboard-check'),('scored','已录成绩','orange','bi-check-circle'),('account','账号','dark','bi-key')] %}
+{% for k,label,color,icon in cols %}
+<div class="col-md-3"><div class="card stat-card p-2" style="border-left-color: var(--bs-{{color}})">
+<div class="d-flex justify-content-between align-items-center"><div><div class="text-muted" style="font-size:12px">{{label}}</div><div class="fs-4 fw-bold">{{ stats[k] }}</div></div><i class="bi {{icon}} fs-2 text-{{color}} opacity-50"></i></div></div></div>
+{% endfor %}</div>
+<div class="row g-3 mt-1">
+<div class="col-md-3"><div class="card stat-card p-2" style="border-left-color:#ef4444"><div class="d-flex justify-content-between"><div><div class="text-muted" style="font-size:12px">待审批转专业</div><div class="fs-4 fw-bold">{{ stats.pending_transfer }}</div></div></div></div></div>
+<div class="col-md-3"><div class="card stat-card p-2" style="border-left-color:#f59e0b"><div class="d-flex justify-content-between"><div><div class="text-muted" style="font-size:12px">待审批放弃成绩</div><div class="fs-4 fw-bold">{{ stats.pending_abandon }}</div></div></div></div></div>
+</div>
+<div class="card mt-4 p-4"><h5>快速导航</h5>
+<div class="row g-3"><div class="col-md-4"><a href="/admin/student" class="btn btn-outline-primary w-100">管理学生</a></div><div class="col-md-4"><a href="/admin/score" class="btn btn-outline-success w-100">管理成绩</a></div><div class="col-md-4"><a href="/admin/approvals" class="btn btn-outline-warning w-100">审批中心</a></div></div></div>
+{% endblock %}

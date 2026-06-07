@@ -1,0 +1,24 @@
+<!-- 审批中心 — 转专业申请 + 放弃成绩申请，含审批意见和审批人 -->
+{% extends "base.html" %}{% block title %}审批中心{% endblock %}
+{% block content %}<h4><i class="bi bi-check-circle"></i> 审批中心</h4>
+
+<div class="card mb-4"><div class="card-header"><strong>转专业申请</strong></div>
+<table class="table table-hover mb-0"><thead><tr><th>学生</th><th>原班级</th><th>目标班级</th><th>理由</th><th>状态</th><th>审批意见</th><th>审批人</th><th>操作</th></tr></thead><tbody>
+{% for t in transfers %}<tr>
+<td>{{ t[10] }}</td><td>{{ t[11] }}</td><td>{{ t[12] }}</td>
+<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t[4] or '-' }}</td>
+<td><span class="badge {% if t[5]=='approved' %}bg-success{% elif t[5]=='rejected' %}bg-danger{% else %}bg-warning{% endif %}">{{ {'pending':'待审批','approved':'已通过','rejected':'已拒绝'}.get(t[5],t[5]) }}</span></td>
+<td style="font-size:12px">{{ t[8] or '-' }}</td><td><small>{{ t[13] or '-' }}</small></td>
+<td>{% if t[5]=='pending' %}<form method="POST" action="/admin/transfer/approve/{{ t[0] }}" class="d-inline"><input name="comment" placeholder="审批意见" class="form-control form-control-sm d-inline" style="width:100px"><button type="submit" name="action" value="approve" class="btn btn-success btn-action">通过</button><button type="submit" name="action" value="reject" class="btn btn-danger btn-action">拒绝</button></form>{% else %}-{% endif %}</td>
+</tr>{% endfor %}</tbody></table></div>
+
+<div class="card"><div class="card-header"><strong>放弃成绩申请</strong></div>
+<table class="table table-hover mb-0"><thead><tr><th>学生</th><th>课程</th><th>理由</th><th>状态</th><th>审批意见</th><th>审批人</th><th>操作</th></tr></thead><tbody>
+{% for a in abandons %}<tr>
+<td>{{ a[9] }}</td><td>{{ a[10] }}</td>
+<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ a[3] or '-' }}</td>
+<td><span class="badge {% if a[4]=='approved' %}bg-success{% elif a[4]=='rejected' %}bg-danger{% else %}bg-warning{% endif %}">{{ {'pending':'待审批','approved':'已通过','rejected':'已拒绝'}.get(a[4],a[4]) }}</span></td>
+<td style="font-size:12px">{{ a[7] or '-' }}</td><td><small>{{ a[11] or '-' }}</small></td>
+<td>{% if a[4]=='pending' %}<form method="POST" action="/admin/abandon/approve/{{ a[0] }}" class="d-inline"><input name="comment" placeholder="审批意见" class="form-control form-control-sm d-inline" style="width:100px"><button type="submit" name="action" value="approve" class="btn btn-success btn-action">通过</button><button type="submit" name="action" value="reject" class="btn btn-danger btn-action">拒绝</button></form>{% else %}-{% endif %}</td>
+</tr>{% endfor %}</tbody></table></div>
+{% endblock %}

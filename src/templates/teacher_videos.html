@@ -1,0 +1,58 @@
+<!-- 教师视频管理 — 上传/删除所授课程的教学视频 -->
+{% extends "base.html" %}{% block title %}课程视频{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-camera-video"></i> 课程视频管理</h4>
+
+<div class="card mb-4 shadow-sm">
+  <div class="card-header bg-primary text-white"><i class="bi bi-cloud-upload"></i> 上传视频</div>
+  <div class="card-body">
+    <form method="POST" action="/teacher/videos/upload" enctype="multipart/form-data">
+      <div class="row g-3">
+        <div class="col-md-3"><label class="form-label">课程</label><select name="course_id" class="form-select" required><option value="">选择课程</option>{% for c in courses %}<option value="{{ c[0] }}">{{ c[1] }} ({{ c[2] }})</option>{% endfor %}</select></div>
+        <div class="col-md-3"><label class="form-label">视频标题</label><input name="title" class="form-control" placeholder="如：第3讲 B+树索引" required></div>
+        <div class="col-md-3"><label class="form-label">简介 (可选)</label><input name="description" class="form-control" placeholder="简要描述"></div>
+        <div class="col-md-2"><label class="form-label">视频文件</label><input type="file" name="video_file" class="form-control" accept="video/*" required></div>
+        <div class="col-md-1 d-flex align-items-end"><button class="btn btn-primary w-100"><i class="bi bi-upload"></i></button></div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<h5>已上传视频 ({{ videos|length }})</h5>
+{% if videos %}
+<div class="table-responsive"><table class="table table-hover"><thead><tr><th>标题</th><th>课程</th><th>大小</th><th>上传时间</th><th>操作</th></tr></thead><tbody>
+{% for v in videos %}
+<tr>
+  <td><i class="bi bi-play-btn text-primary"></i> {{ v[2] }}</td>
+  <td><span class="badge bg-secondary">{{ v[9] }}</span></td>
+  <td>{% if v[5] %}{{ "%.1f"|format(v[5]/1048576) }} MB{% else %}-{% endif %}</td>
+  <td style="font-size:12px">{{ v[7] }}</td>
+  <td>
+    <button class="btn btn-outline-primary btn-sm me-1" onclick="playVideo('/uploads/videos/{{ v[4] }}','{{ v[2] }}')"><i class="bi bi-play-fill"></i></button>
+    <a href="/teacher/videos/del/{{ v[0] }}" class="btn btn-outline-danger btn-sm" onclick="return confirm('确定删除「{{ v[2] }}」？')"><i class="bi bi-trash"></i></a>
+  </td>
+</tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}<div class="text-muted py-3">暂无视频，请上传</div>{% endif %}
+
+<!-- 视频播放弹窗 -->
+<div class="modal fade" id="videoModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+<div class="modal-header"><h6 id="videoTitle">视频播放</h6><div><button class="btn btn-sm btn-outline-light me-1" onclick="fsVideo()" title="全屏"><i class="bi bi-fullscreen"></i></button><button class="btn-close" data-bs-dismiss="modal"></button></div></div>
+<div class="modal-body p-0"><video id="videoPlayer" controls playsinline style="width:100%;max-height:70vh" src=""></video></div>
+</div></div></div>
+<script>
+function playVideo(url, title){
+    document.getElementById('videoTitle').textContent=title;
+    var v=document.getElementById('videoPlayer');
+    v.src=url; v.load(); v.play();
+    new bootstrap.Modal(document.getElementById('videoModal')).show();
+}
+function fsVideo(){
+    window.open(document.getElementById('videoPlayer').src, '_blank');
+}
+// 关闭弹窗时停止播放
+document.getElementById('videoModal').addEventListener('hidden.bs.modal',function(){
+    var v=document.getElementById('videoPlayer'); v.pause(); v.src='';
+});
+</script>
+{% endblock %}

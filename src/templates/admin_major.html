@@ -1,0 +1,34 @@
+<!-- 专业管理 — 查看/新增/编辑/删除专业，关联学院 -->
+{% extends "base.html" %}{% block title %}专业管理{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-bookmark"></i> 专业管理</h4>
+<button class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addM"><i class="bi bi-plus-circle"></i> 新增专业</button>
+<div class="card"><table class="table table-hover mb-0"><thead><tr><th>编号</th><th>专业名称</th><th>所属学院</th><th style="width:120px">操作</th></tr></thead><tbody>
+{% for m in majors %}<tr><td>{{ m[0] }}</td><td>{{ m[1] }}</td><td>{{ m[2] }}</td>
+<td>
+<button class="btn btn-outline-primary btn-action" onclick="editMajor({{m[0]}},'{{m[1]}}',{{m[3]}})"><i class="bi bi-pencil"></i></button>
+<a href="/admin/major/del/{{ m[0] }}" class="btn btn-outline-danger btn-action" onclick="return confirm('确定删除?')"><i class="bi bi-trash"></i></a>
+</td></tr>{% endfor %}</tbody></table></div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addM"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>新增专业</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form method="POST" action="/admin/major/add"><div class="modal-body">
+<div class="mb-3"><label>专业名称</label><input name="name" class="form-control" required></div>
+<div class="mb-3"><label>所属学院</label><select name="college_id" class="form-select" required><option value="">请选择</option>{% for cl in colleges %}<option value="{{ cl[0] }}">{{ cl[1] }}</option>{% endfor %}</select></div></div>
+<div class="modal-footer"><button class="btn btn-primary">添加</button></div></form></div></div></div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editM"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>编辑专业</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form id="editForm" method="POST"><div class="modal-body">
+<div class="mb-3"><label>专业名称</label><input name="name" id="editName" class="form-control" required></div>
+<div class="mb-3"><label>所属学院</label><select name="college_id" id="editCollege" class="form-select" required><option value="">请选择</option>{% for cl in colleges %}<option value="{{ cl[0] }}">{{ cl[1] }}</option>{% endfor %}</select></div></div>
+<div class="modal-footer"><button class="btn btn-primary">保存修改</button></div></form></div></div></div>
+
+<script>
+function editMajor(id,name,college_id){
+    document.getElementById('editForm').action='/admin/major/edit/'+id;
+    document.getElementById('editName').value=name;
+    document.getElementById('editCollege').value=college_id;
+    new bootstrap.Modal(document.getElementById('editM')).show();
+}
+</script>
+{% endblock %}

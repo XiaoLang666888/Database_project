@@ -1,0 +1,17 @@
+<!-- 账号管理 — 创建/管理三种角色的系统账号 -->
+{% extends "base.html" %}{% block title %}账号管理{% endblock %}
+{% block content %}<h4><i class="bi bi-key"></i> 账号管理</h4>
+<button class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addM"><i class="bi bi-plus-circle"></i> 创建账号</button>
+<div class="card"><table class="table table-hover mb-0"><thead><tr><th>编号</th><th>用户名</th><th>角色</th><th>关联人员</th><th style="width:80px">操作</th></tr></thead><tbody>
+{% for a in accounts %}<tr><td>{{ a[0] }}</td><td>{{ a[1] }}</td><td><span class="badge {% if a[3]=='admin' %}bg-danger{% elif a[3]=='teacher' %}bg-warning{% else %}bg-info{% endif %}">{{ a[3] }}</span></td><td>{{ a[5] or '-' }}</td><td><a href="/admin/account/reset/{{ a[0] }}" class="btn btn-outline-warning btn-action" onclick="return confirm('确定重置 {{ a[1] }} 的密码为 123456?')"><i class="bi bi-arrow-repeat"></i></a></td></tr>{% endfor %}</tbody></table></div>
+<div class="modal fade" id="addM"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>创建账号</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form method="POST" action="/admin/account/add"><div class="modal-body"><div class="mb-3"><label>用户名</label><input name="username" class="form-control" required></div><div class="mb-3"><label>密码</label><input type="password" name="password" class="form-control" required></div><div class="mb-3"><label>角色</label><select name="role" id="roleSelect" class="form-select" onchange="updateRef()"><option value="admin">Admin（管理员）</option><option value="teacher">Teacher（教师）</option><option value="student">Student（学生）</option></select></div><div class="mb-3"><label>关联人员</label><select name="ref_id" id="refSelect" class="form-select"><optgroup label="管理员" id="adminOpt">{% for a in admins %}<option value="{{ a[0] }}">{{ a[1] }} {{ a[2] }}</option>{% endfor %}</optgroup><optgroup label="教师" id="teacherOpt" style="display:none">{% for t in teachers %}<option value="{{ t[0] }}">{{ t[1] }}</option>{% endfor %}</optgroup><optgroup label="学生" id="studentOpt" style="display:none">{% for s in students %}<option value="{{ s[0] }}">{{ s[0] }} {{ s[1] }}</option>{% endfor %}</optgroup></select></div></div><div class="modal-footer"><button class="btn btn-primary">创建</button></div></form></div></div></div>
+<script>
+function updateRef(){
+    var r=document.getElementById('roleSelect').value;
+    document.getElementById('adminOpt').style.display=r=='admin'?'':'none';
+    document.getElementById('teacherOpt').style.display=r=='teacher'?'':'none';
+    document.getElementById('studentOpt').style.display=r=='student'?'':'none';
+}
+</script>
+{% endblock %}

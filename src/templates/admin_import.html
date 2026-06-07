@@ -1,0 +1,53 @@
+<!-- 文件导入 — 支持 Excel 一键导入学生/教师并自动创建账号 -->
+{% extends "base.html" %}{% block title %}文件导入{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-file-earmark-arrow-up"></i> 文件导入</h4>
+<p class="text-muted mb-3">支持从 Excel (.xlsx) 文件批量导入学生和教师，系统自动创建对应账号。</p>
+
+<div class="row g-4">
+<div class="col-md-6">
+<div class="card shadow-sm">
+  <div class="card-header bg-primary text-white"><i class="bi bi-people-fill"></i> 导入学生</div>
+  <div class="card-body">
+    <p class="text-muted" style="font-size:13px">Excel 列顺序：学号 | 姓名 | 性别 | 出生日期 | 入学年份 | 电话 | 邮箱 | 班级名称</p>
+    <p class="text-muted" style="font-size:12px">账号：用户名=学号，密码=学号</p>
+    <form method="POST" action="/admin/import/students" enctype="multipart/form-data">
+      <div class="mb-3"><input type="file" name="file" class="form-control" accept=".xlsx" required></div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary"><i class="bi bi-upload"></i> 上传导入</button>
+        <a href="/uploads/学生导入模板.xlsx" class="btn btn-outline-secondary"><i class="bi bi-download"></i> 下载模板</a>
+      </div>
+    </form>
+  </div>
+</div></div>
+
+<div class="col-md-6">
+<div class="card shadow-sm">
+  <div class="card-header bg-success text-white"><i class="bi bi-person-workspace"></i> 导入教师</div>
+  <div class="card-body">
+    <p class="text-muted" style="font-size:13px">Excel 列顺序：工号 | 姓名 | 性别 | 职称 | 学院名称</p>
+    <p class="text-muted" style="font-size:12px">账号：用户名=t_{工号}，密码=123456</p>
+    <form method="POST" action="/admin/import/teachers" enctype="multipart/form-data">
+      <div class="mb-3"><input type="file" name="file" class="form-control" accept=".xlsx" required></div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-success"><i class="bi bi-upload"></i> 上传导入</button>
+        <a href="/uploads/教师导入模板.xlsx" class="btn btn-outline-secondary"><i class="bi bi-download"></i> 下载模板</a>
+      </div>
+    </form>
+  </div>
+</div></div>
+</div>
+
+<div class="card mt-4 shadow-sm">
+  <div class="card-header bg-light fw-bold">📋 说明</div>
+  <div class="card-body" style="font-size:13px">
+    <ul class="mb-0">
+      <li>第一行为列标题，系统自动跳过，从第二行开始读取数据。</li>
+      <li>学号/工号和姓名为必填，其余列可选。</li>
+      <li>性别填写 <code>M</code>（男）或 <code>F</code>（女），不填默认 M。</li>
+      <li>班级名称和学院名称需与系统中已有名称完全一致，否则关联字段留空。</li>
+      <li>已存在的学号/工号自动跳过（不覆盖），防止数据重复。</li>
+      <li>建议先下载模板，按格式填写后上传。</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

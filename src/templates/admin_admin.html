@@ -1,0 +1,74 @@
+<!-- 管理员管理 — 查看/新增/删除系统管理员 -->
+{% extends "base.html" %}
+{% block title %}管理员管理{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+<h4><i class="bi bi-shield-lock"></i> 管理员管理</h4>
+<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-circle"></i> 添加管理员</button>
+</div>
+
+<div class="card"><div class="card-body">
+<table class="table table-hover mb-0">
+<thead><tr><th>编号</th><th>工号</th><th>姓名</th><th>性别</th><th>部门</th><th>职务</th><th>电话</th><th>邮箱</th><th>操作</th></tr></thead>
+<tbody>
+{% for a in admins %}
+<tr>
+<td>{{a[0]}}</td><td>{{a[1]}}</td><td>{{a[2]}}</td>
+<td>{% if a[3]=='M' %}男{% else %}女{% endif %}</td>
+<td>{{a[5] or '-'}}</td><td>{{a[6] or '-'}}</td>
+<td>{{a[4] or '-'}}</td><td>{{a[7] or '-'}}</td>
+<td>
+<button class="btn btn-warning btn-sm btn-action me-1" onclick="editAdmin('{{a[0]}}','{{a[1]}}','{{a[2]}}','{{a[3]}}','{{a[4] or ''}}','{{a[5] or ''}}','{{a[6] or ''}}','{{a[7] or ''}}')"><i class="bi bi-pencil"></i></button>
+<a href="/admin/admin_mgmt/del/{{a[0]}}" class="btn btn-danger btn-sm btn-action" onclick="return confirm('确定删除管理员 {{a[2]}}？')"><i class="bi bi-trash"></i></a></td>
+</tr>
+{% endfor %}
+</tbody></table>
+</div></div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+<div class="modal-dialog"><div class="modal-content">
+<div class="modal-header"><h5 class="modal-title">添加管理员</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form method="POST" action="/admin/admin_mgmt/add">
+<div class="modal-body">
+<div class="row g-2">
+<div class="col-6"><label class="form-label">工号</label><input class="form-control" name="job_no" required></div>
+<div class="col-6"><label class="form-label">姓名</label><input class="form-control" name="name" required></div>
+<div class="col-6"><label class="form-label">性别</label><select class="form-select" name="gender"><option value="M">男</option><option value="F">女</option></select></div>
+<div class="col-6"><label class="form-label">职务</label><input class="form-control" name="title"></div>
+<div class="col-6"><label class="form-label">部门</label><input class="form-control" name="department"></div>
+<div class="col-6"><label class="form-label">电话</label><input class="form-control" name="phone"></div>
+<div class="col-12"><label class="form-label">邮箱</label><input class="form-control" name="email" type="email"></div>
+</div></div>
+<div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" type="submit">确定添加</button></div>
+</form></div></div></div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editM"><div class="modal-dialog"><div class="modal-content">
+<div class="modal-header"><h5>编辑管理员 #<span id="editAid"></span></h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form id="editForm" method="POST"><div class="modal-body"><div class="row g-2">
+<div class="col-6"><label class="form-label">工号</label><input class="form-control" name="job_no" id="editJobNo" required></div>
+<div class="col-6"><label class="form-label">姓名</label><input class="form-control" name="name" id="editName" required></div>
+<div class="col-6"><label class="form-label">性别</label><select class="form-select" name="gender" id="editGender"><option value="M">男</option><option value="F">女</option></select></div>
+<div class="col-6"><label class="form-label">职务</label><input class="form-control" name="title" id="editTitle"></div>
+<div class="col-6"><label class="form-label">部门</label><input class="form-control" name="department" id="editDept"></div>
+<div class="col-6"><label class="form-label">电话</label><input class="form-control" name="phone" id="editPhone"></div>
+<div class="col-12"><label class="form-label">邮箱</label><input class="form-control" name="email" id="editEmail"></div>
+</div></div><div class="modal-footer"><button class="btn btn-warning">保存修改</button></div>
+</form></div></div></div>
+
+<script>
+function editAdmin(aid,jobNo,name,gender,phone,dept,title,email){
+    document.getElementById('editForm').action='/admin/admin_mgmt/edit/'+aid;
+    document.getElementById('editAid').textContent=aid;
+    document.getElementById('editJobNo').value=jobNo;
+    document.getElementById('editName').value=name;
+    document.getElementById('editGender').value=gender;
+    document.getElementById('editPhone').value=phone;
+    document.getElementById('editDept').value=dept;
+    document.getElementById('editTitle').value=title;
+    document.getElementById('editEmail').value=email;
+    new bootstrap.Modal(document.getElementById('editM')).show();
+}
+</script>
+{% endblock %}

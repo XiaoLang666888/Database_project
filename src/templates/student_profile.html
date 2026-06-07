@@ -1,0 +1,83 @@
+<!-- 学生个人信息 — 查看/编辑个人信息、上传头像 -->
+{% extends "base.html" %}{% block title %}个人信息{% endblock %}
+{% block content %}<h4 class="mb-4"><i class="bi bi-person-circle"></i> 个人信息</h4>
+
+<div class="row g-4">
+  <!-- 左侧：头像 + 基本资料 -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-start gap-4">
+          <!-- 头像区 -->
+          <div class="text-center flex-shrink-0">
+            {% if stu[8] %}
+            <img src="/uploads/photos/{{ stu[8] }}" class="rounded-3 shadow-sm" style="width:110px;height:140px;object-fit:cover;border:3px solid #e2e8f0">
+            {% else %}
+            <div class="rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center bg-gradient" style="width:110px;height:140px;background:linear-gradient(135deg,#e0e7ff,#c7d2fe)">
+              <i class="bi bi-person-fill" style="font-size:48px;color:#6366f1"></i>
+            </div>
+            {% endif %}
+            <div class="mt-2">
+              <span class="badge {% if stu[4]=='active' %}bg-success{% elif stu[4]=='suspended' %}bg-warning{% else %}bg-secondary{% endif %}">{{ stu[4] }}</span>
+            </div>
+          </div>
+          <!-- 信息区 -->
+          <div class="flex-grow-1">
+            <h5 class="mb-1">{{ stu[1] }}</h5>
+            <p class="text-muted mb-3" style="font-size:13px">{{ stu[0] }} · {{ stu[10] or '未分配班级' }}</p>
+            <div class="row g-2" style="font-size:13px">
+              <div class="col-6"><div class="d-flex justify-content-between border-bottom pb-1"><span class="text-muted">性别</span><span>{{ '男' if stu[2]=='M' else '女' }}</span></div></div>
+              <div class="col-6"><div class="d-flex justify-content-between border-bottom pb-1"><span class="text-muted">出生日期</span><span>{{ stu[3] or '-' }}</span></div></div>
+              <div class="col-6"><div class="d-flex justify-content-between border-bottom pb-1"><span class="text-muted">入学年份</span><span>{{ stu[5] or '-' }}</span></div></div>
+              <div class="col-6"><div class="d-flex justify-content-between border-bottom pb-1"><span class="text-muted">电话</span><span>{{ stu[6] or '未填写' }}</span></div></div>
+              <div class="col-12"><div class="d-flex justify-content-between border-bottom pb-1"><span class="text-muted">邮箱</span><span>{{ stu[7] or '未填写' }}</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧：编辑区 -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+        <h6 class="mb-0"><i class="bi bi-pencil-square text-primary me-1"></i> 编辑信息</h6>
+        <small class="text-muted">仅可修改以下三项</small>
+      </div>
+      <div class="card-body pt-2">
+        <form method="POST" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label class="form-label" style="font-size:12px;font-weight:600"><i class="bi bi-telephone me-1"></i>电话</label>
+            <input name="phone" class="form-control form-control-sm" value="{{ stu[6] or '' }}" placeholder="请输入手机号">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-size:12px;font-weight:600"><i class="bi bi-envelope me-1"></i>邮箱</label>
+            <input name="email" class="form-control form-control-sm" value="{{ stu[7] or '' }}" placeholder="请输入邮箱">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-size:12px;font-weight:600"><i class="bi bi-camera me-1"></i>证件照</label>
+            <input type="file" name="photo" class="form-control form-control-sm" accept=".jpg,.png,.jpeg">
+            <div class="form-text" style="font-size:11px">支持 JPG / PNG 格式</div>
+          </div>
+          <button class="btn btn-primary btn-sm w-100 py-2">
+            <i class="bi bi-check-lg"></i> 保存修改
+          </button>
+        </form>
+        <hr style="border-style:dashed">
+        <h6 class="mb-2" style="font-size:12px"><i class="bi bi-key text-warning me-1"></i>修改密码</h6>
+        <form method="POST" action="/change_password">
+          <div class="mb-2"><input type="password" name="old_password" class="form-control form-control-sm" placeholder="原密码" required></div>
+          <div class="mb-2"><input type="password" name="new_password" class="form-control form-control-sm" placeholder="新密码（至少4位）" required></div>
+          <div class="mb-2"><input type="password" name="confirm_password" class="form-control form-control-sm" placeholder="确认新密码" required></div>
+          <button class="btn btn-warning btn-sm w-100 py-2"><i class="bi bi-key"></i> 修改密码</button>
+        </form>
+        <hr style="border-style:dashed">
+        <div style="font-size:11px;color:#94a3b8">
+          <i class="bi bi-lock me-1"></i> 学号、姓名、班级等信息需联系管理员修改
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

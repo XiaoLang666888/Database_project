@@ -1,0 +1,17 @@
+<!-- 教师首页 — 显示授课课程列表及已录/未录成绩数量 -->
+{% extends "base.html" %}{% block title %}我的课程{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-book"></i> 我的课程</h4>
+<div class="row g-3">
+{% for c in courses %}
+<div class="col-md-6"><div class="card p-3">
+<h5>{{ c[1] }} <span class="badge {% if c[6]=='专业必修' %}bg-danger{% elif c[6]=='专业选修' %}bg-warning{% elif c[6]=='通修' %}bg-info{% else %}bg-success{% endif %}">{{ c[6] }}</span></h5>
+<p class="text-muted mb-2">学期: {{ c[5] or '-' }} | 学分: {{ c[2] }} | 选课: {{ c[7] or 0 }}人
+{% if c[8] and c[8] > 0 %}
+<span class="text-danger fw-bold ms-2">⚠ 未录入 {{ c[8] }} 人</span>
+{% endif %}
+</p>
+<a href="/teacher/score/{{ c[0] }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i> 录入成绩</a>
+</div></div>
+{% endfor %}</div>
+{% if not courses %}<p class="text-muted">暂无分配的课程</p>{% endif %}
+{% endblock %}

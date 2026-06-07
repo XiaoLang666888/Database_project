@@ -1,0 +1,68 @@
+<!-- 成绩管理 — 学期→课程两级折叠，支持录入成绩/选课/退课 -->
+{% extends "base.html" %}{% block title %}成绩管理{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-clipboard-data"></i> 成绩管理</h4>
+<button class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#enrollM"><i class="bi bi-plus-circle"></i> 选课</button>
+
+{% set sems = [] %}
+{% for c in courses %}{% if c[3] not in sems %}{% set _ = sems.append(c[3]) %}{% endif %}{% endfor %}
+
+{% for sem in sems %}
+<div class="card mb-3 border-0 shadow-sm">
+  <div class="card-header bg-light fw-bold d-flex justify-content-between" data-bs-toggle="collapse" data-bs-target="#sem_{{ loop.index }}" style="cursor:pointer">
+    <span>📅 {{ sem }}</span><i class="bi bi-chevron-down text-muted"></i>
+  </div>
+  <div id="sem_{{ loop.index }}" class="collapse">
+    <div class="card-body p-0">
+{% for c in courses %}{% if c[3]==sem %}
+<div class="border-bottom">
+  <div class="px-3 py-2 bg-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#g{{c[0]}}" style="cursor:pointer">
+    <div>
+      <strong>{{ c[1] }}</strong>
+      <span class="badge bg-secondary ms-2">{{ c[2] }}学分</span>
+    </div>
+    <div class="text-muted" style="font-size:13px">
+      选课 {{ c[4] }} 人{% if c[5] is not none %} | 均分 <span class="fw-bold text-primary">{{ c[5] }}</span>{% endif %}
+      <i class="bi bi-chevron-down ms-1"></i>
+    </div>
+  </div>
+  <div id="g{{c[0]}}" class="collapse">
+    <table class="table table-hover table-sm mb-0">
+      <thead class="table-light"><tr><th style="width:140px">学号</th><th>姓名</th><th style="width:80px">成绩</th><th style="width:60px">状态</th><th style="width:100px">操作</th></tr></thead>
+      <tbody>
+      {% for s in course_scores[c[0]] %}
+      <tr><td>{{ s[0] }}</td><td>{{ s[1] }}</td>
+      <td>{% if s[2] is not none %}<span class="fw-bold {% if s[2]>=90 %}text-success{% elif s[2]>=60 %}text-dark{% else %}text-danger{% endif %}">{{ s[2] }}</span>{% else %}<span class="text-muted">-</span>{% endif %}</td>
+      <td>{% if s[3]=='abandoned' %}<span class="badge bg-danger">已放弃</span>{% else %}<span class="badge bg-success">正常</span>{% endif %}</td>
+      <td>
+        <button class="btn btn-outline-info btn-action" onclick="editScore('{{s[0]}}',{{c[0]}},'{{s[1]}}','{{c[1]}}',{{s[2] if s[2] is not none else 'null'}})"><i class="bi bi-pencil"></i></button>
+        <a href="/admin/score/del/{{s[0]}}/{{c[0]}}" class="btn btn-outline-danger btn-action" onclick="return confirm('确定退课?')"><i class="bi bi-x-circle"></i></a>
+      </td></tr>
+      {% endfor %}
+      {% if course_scores[c[0]]|length == 0 %}
+      <tr><td colspan="5" class="text-muted text-center py-2">暂无学生选课</td></tr>
+      {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}{% endfor %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<div class="modal fade" id="editM"><div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header"><h6 id="editTitle">成绩录入</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form id="editForm" method="POST"><div class="modal-body"><input type="number" step="0.1" name="score" id="editScoreVal" class="form-control" placeholder="0~100"></div><div class="modal-footer"><button class="btn btn-primary btn-sm">保存</button></div></form></div></div></div>
+
+<script>
+function editScore(sno,cno,sname,cname,score){
+    document.getElementById('editTitle').textContent=sname+' - '+cname;
+    document.getElementById('editForm').action='/admin/score/update/'+sno+'/'+cno;
+    document.getElementById('editScoreVal').value=score!==null?score:'';
+    new bootstrap.Modal(document.getElementById('editM')).show();
+}
+</script>
+
+<div class="modal fade" id="enrollM"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>选课</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form method="POST" action="/admin/score/enroll"><div class="modal-body"><div class="mb-3"><label>学生</label><select name="sno" class="form-select" required><option value="">选择</option>{% for st in students %}<option value="{{ st[0] }}">{{ st[0] }} {{ st[1] }}</option>{% endfor %}</select></div><div class="mb-3"><label>课程</label><select name="cno" class="form-select" required><option value="">选择</option>{% for c in all_courses %}<option value="{{ c[0] }}">{{ c[1] }}</option>{% endfor %}</select></div></div><div class="modal-footer"><button class="btn btn-success">确认选课</button></div></form></div></div></div>
+{% endblock %}

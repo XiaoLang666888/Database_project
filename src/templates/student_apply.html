@@ -1,0 +1,30 @@
+<!-- 申请中心 — 转专业申请 + 放弃成绩申请 + 奖项申请 (文件上传) -->
+{% extends "base.html" %}{% block title %}申请中心{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-arrow-left-right"></i> 申请中心</h4>
+
+<div class="card mb-3"><div class="card-header"><strong><i class="bi bi-trophy"></i> 奖项申请</strong></div>
+<div class="card-body">
+<form method="POST" action="/student/award/apply" enctype="multipart/form-data" class="row g-2">
+<div class="col-4"><input name="title" class="form-control" placeholder="奖项名称" required></div>
+<div class="col-4"><input name="description" class="form-control" placeholder="申请描述"></div>
+<div class="col-4"><input type="file" name="cert_file" class="form-control" accept=".pdf,.jpg,.png,.doc,.docx"><div class="form-text">上传证书文件</div></div>
+<div class="col-12"><button class="btn btn-success btn-sm">提交奖项申请</button></div></form>
+{% if awards %}<hr><table class="table table-sm"><thead><tr><th>奖项名称</th><th>描述</th><th>时间</th><th>状态</th></tr></thead><tbody>{% for a in awards %}<tr><td>{{ a[2] }}</td><td>{{ a[3] or '-' }}</td><td>{{ a[6] }}</td><td><span class="badge {% if a[5]=='approved' %}bg-success{% elif a[5]=='rejected' %}bg-danger{% else %}bg-warning{% endif %}">{{ {'pending':'待审批','approved':'已通过','rejected':'已拒绝'}.get(a[5],a[5]) }}</span></td></tr>{% endfor %}</tbody></table>{% endif %}</div></div>
+
+<div class="card mb-3"><div class="card-header"><strong><i class="bi bi-arrow-left-right"></i> 转专业申请</strong></div>
+<div class="card-body">
+<form method="POST" action="/student/transfer" class="row g-2">
+<div class="col-4"><select name="from_class_id" class="form-select" required><option value="">原班级</option><option value="{{ stu[9] }}" selected>{{ stu[10] }}</option></select></div>
+<div class="col-4"><select name="to_class_id" class="form-select" required><option value="">目标班级</option>{% for c in classes %}<option value="{{ c[0] }}">{{ c[1] }} ({{ c[2] }})</option>{% endfor %}</select></div>
+<div class="col-4"><input name="reason" class="form-control" placeholder="申请理由"></div>
+<div class="col-12"><button class="btn btn-primary btn-sm">提交转专业申请</button></div></form>
+{% if transfers %}<hr><table class="table table-sm"><thead><tr><th>时间</th><th>状态</th><th>意见</th><th>审批人</th></tr></thead><tbody>{% for t in transfers %}<tr><td>{{ t[7] }}</td><td><span class="badge {% if t[5]=='approved' %}bg-success{% elif t[5]=='rejected' %}bg-danger{% else %}bg-warning{% endif %}">{{ {'pending':'待审批','approved':'已通过','rejected':'已拒绝'}.get(t[5],t[5]) }}</span></td><td>{{ t[8] or '-' }}</td><td><small>{{ t[10] or '-' }}</small></td></tr>{% endfor %}</tbody></table>{% endif %}</div></div>
+
+<div class="card"><div class="card-header"><strong><i class="bi bi-x-circle"></i> 放弃成绩申请</strong> <small class="text-muted">(已用 {{ abandons|selectattr('5','eq','approved')|list|length }}/2 次)</small></div>
+<div class="card-body">
+<form method="POST" action="/student/abandon" class="row g-2">
+<div class="col-4"><select name="cno" class="form-select" required><option value="">选择课程</option>{% for s in scores %}<option value="{{ s[0] }}">{{ s[1] }} ({{ s[3] or '未录入' }})</option>{% endfor %}</select></div>
+<div class="col-4"><input name="reason" class="form-control" placeholder="放弃理由"></div>
+<div class="col-4"><button class="btn btn-warning btn-sm">提交放弃申请</button></div></form>
+{% if abandons %}<hr><table class="table table-sm"><thead><tr><th>课程</th><th>时间</th><th>状态</th><th>意见</th><th>审批人</th></tr></thead><tbody>{% for a in abandons %}<tr><td>{{ a[9] }}</td><td>{{ a[6] }}</td><td><span class="badge {% if a[4]=='approved' %}bg-success{% elif a[4]=='rejected' %}bg-danger{% else %}bg-warning{% endif %}">{{ {'pending':'待审批','approved':'已通过','rejected':'已拒绝'}.get(a[4],a[4]) }}</span></td><td>{{ a[7] or '-' }}</td><td><small>{{ a[10] or '-' }}</small></td></tr>{% endfor %}</tbody></table>{% endif %}</div></div>
+{% endblock %}

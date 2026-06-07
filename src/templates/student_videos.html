@@ -1,0 +1,69 @@
+<!-- 学生课程视频 — 学期→课程→视频 三级层级 -->
+{% extends "base.html" %}{% block title %}课程视频{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-camera-video"></i> 课程视频</h4>
+<p class="text-muted mb-3">仅显示<strong>已选课程</strong>的教学视频（需先在选课中心选课）</p>
+
+{% if videos %}
+{# Step 1: collect semesters #}
+{% set semesters = [] %}
+{% for v in videos %}{% if v[10] not in semesters %}{% set _ = semesters.append(v[10]) %}{% endif %}{% endfor %}
+
+{% for sem in semesters %}
+<div class="card mb-3 shadow-sm">
+  <div class="card-header bg-light fw-bold d-flex justify-content-between" data-bs-toggle="collapse" data-bs-target="#sem_{{ loop.index }}" style="cursor:pointer">
+    <span>📅 {{ sem }}</span>
+    {% set cnt = namespace(n=0) %}{% for v in videos %}{% if v[10]==sem %}{% set cnt.n = cnt.n + 1 %}{% endif %}{% endfor %}
+    <span class="text-muted" style="font-size:13px">{{ cnt.n }}个视频</span>
+  </div>
+  <div id="sem_{{ loop.index }}" class="collapse">
+    <div class="card-body p-0">
+      {# Step 2: within this semester, collect unique courses #}
+      {% set courses_in_sem = [] %}
+      {% for v in videos %}{% if v[10]==sem and v[9] not in courses_in_sem %}{% set _ = courses_in_sem.append(v[9]) %}{% endif %}{% endfor %}
+
+      {% for cn in courses_in_sem %}
+      <div class="border-bottom">
+        <div class="px-3 py-2 bg-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#crs_{{ sem|replace(' ','_') }}_{{ loop.index }}" style="cursor:pointer">
+          <strong style="font-size:14px">📘 {{ cn }}</strong>
+          {% set vcnt = namespace(n=0) %}{% for v in videos %}{% if v[10]==sem and v[9]==cn %}{% set vcnt.n = vcnt.n + 1 %}{% endif %}{% endfor %}
+          <span class="text-muted" style="font-size:12px">{{ vcnt.n }}个 <i class="bi bi-chevron-down"></i></span>
+        </div>
+        <div id="crs_{{ sem|replace(' ','_') }}_{{ loop.index }}" class="collapse">
+          <div class="list-group list-group-flush">
+          {% for v in videos %}{% if v[10]==sem and v[9]==cn %}
+            <a href="javascript:void(0)" onclick="playVideo('/uploads/videos/{{ v[4] }}','{{ v[2] }}')" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center ps-4">
+              <div><i class="bi bi-play-circle text-primary me-2"></i> {{ v[2] }}</div>
+              <small class="text-muted">{% if v[5] %}{{ "%.1f"|format(v[5]/1048576) }} MB{% endif %}</small>
+            </a>
+          {% endif %}{% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% else %}<div class="card"><div class="card-body text-muted text-center py-4">暂无可观看的课程视频<br><small>请先在「选课中心」选择对应课程，教师上传视频后即可在此观看</small></div></div>{% endif %}
+
+<!-- 视频播放弹窗 -->
+<div class="modal fade" id="videoModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+<div class="modal-header"><h6 id="videoTitle">视频播放</h6><div><button class="btn btn-sm btn-outline-light me-1" onclick="fsVideo()" title="全屏"><i class="bi bi-fullscreen"></i></button><button class="btn-close" data-bs-dismiss="modal"></button></div></div>
+<div class="modal-body p-0"><video id="videoPlayer" controls playsinline style="width:100%;max-height:70vh" src=""></video></div>
+</div></div></div>
+<script>
+function playVideo(url, title){
+    document.getElementById('videoTitle').textContent=title;
+    var v=document.getElementById('videoPlayer');
+    v.src=url; v.load(); v.play();
+    new bootstrap.Modal(document.getElementById('videoModal')).show();
+}
+function fsVideo(){
+    window.open(document.getElementById('videoPlayer').src, '_blank');
+}
+document.getElementById('videoModal').addEventListener('hidden.bs.modal',function(){
+    var v=document.getElementById('videoPlayer'); v.pause(); v.src='';
+});
+</script>
+{% endblock %}

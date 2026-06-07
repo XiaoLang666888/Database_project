@@ -1,0 +1,79 @@
+<!-- ===========================================================================
+  base.html — 基础布局模板 (所有页面继承此模板)
+  ===========================================================================
+  提供：Bootstrap 5.3 + Bootstrap Icons CDN、导航栏、侧边栏、flash消息、页脚
+  角色侧边栏：admin (全部管理功能) / teacher (我的课程) / student (成绩/选课/申请)
+  布局：flex 布局，侧边栏固定宽度 220px，主内容区自适应
+  =========================================================================== -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{% block title %}学生管理系统{% endblock %}</title>
+<link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+html,body{height:100%;margin:0}
+body{background:#f5f7fa;font-size:14px;display:flex;flex-direction:column}.navbar-brand{font-weight:bold}
+.wrapper{flex:1;display:flex}
+.sidebar{background:#1e293b;width:220px;flex-shrink:0;padding:0;display:flex;flex-direction:column}
+.sidebar .nav-link{color:#94a3b8;padding:10px 20px;font-size:13px}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{color:#fff;background:#334155}
+.sidebar .nav-link i{margin-right:8px}.main{padding:24px;flex:1;min-width:0;background:#fff}
+.card{border:none;box-shadow:0 1px 3px rgba(0,0,0,.08);border-radius:8px}
+.stat-card{border-left:4px solid;padding:16px;transition:transform .2s}
+.stat-card:hover{transform:translateY(-2px)}.btn-action{padding:2px 8px;font-size:12px}
+.table th{background:#f8fafc;font-weight:600;font-size:13px}
+.table td{vertical-align:middle;font-size:13px}
+.modal-header{background:#1e293b;color:#fff}
+</style></head><body>
+<nav class="navbar navbar-dark bg-dark"><div class="container-fluid">
+<a class="navbar-brand" href="/"><i class="bi bi-mortarboard-fill"></i> 学生管理系统</a>
+{% if session.logged_in %}
+<div class="d-flex align-items-center">
+<span class="text-light me-3"><i class="bi bi-person-circle"></i> {{ session.username }} <span class="badge bg-info">{{ session.role }}</span></span>
+<a href="/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> 退出</a>
+</div>{% endif %}
+</div></nav><div class="wrapper">
+{% if session.logged_in %}
+<div class="sidebar"><nav class="nav flex-column mt-2">
+{% if session.role=='admin' %}
+<a class="nav-link" href="/"><i class="bi bi-speedometer2"></i> 仪表盘</a>
+<a class="nav-link" href="/admin/college"><i class="bi bi-building"></i> 学院管理</a>
+<a class="nav-link" href="/admin/major"><i class="bi bi-building"></i> 专业管理</a>
+<a class="nav-link" href="/admin/class"><i class="bi bi-people"></i> 班级管理</a>
+<a class="nav-link" href="/admin/student"><i class="bi bi-person-badge"></i> 学生管理</a>
+<a class="nav-link" href="/admin/teacher"><i class="bi bi-person-workspace"></i> 教师管理</a>
+<a class="nav-link" href="/admin/admin_mgmt"><i class="bi bi-shield-lock"></i> 管理员管理</a>
+<a class="nav-link" href="/admin/course"><i class="bi bi-book"></i> 课程管理</a>
+<a class="nav-link" href="/admin/score"><i class="bi bi-clipboard-data"></i> 成绩管理</a>
+<a class="nav-link" href="/admin/rp"><i class="bi bi-award"></i> 奖惩管理</a>
+<a class="nav-link" href="/admin/approvals"><i class="bi bi-check-circle"></i> 审批中心</a>
+<a class="nav-link" href="/admin/awards"><i class="bi bi-trophy"></i> 奖项审批</a>
+<a class="nav-link" href="/admin/account"><i class="bi bi-key"></i> 账号管理</a>
+<a class="nav-link" href="/admin/import"><i class="bi bi-file-earmark-arrow-up"></i> 文件导入</a>
+<a class="nav-link" href="/admin/videos"><i class="bi bi-camera-video"></i> 视频管理</a>
+<a class="nav-link" href="/admin/profile"><i class="bi bi-person-circle"></i> 个人信息</a>
+{% elif session.role=='teacher' %}
+<a class="nav-link" href="/"><i class="bi bi-book"></i> 我的课程</a>
+<a class="nav-link" href="/teacher/videos"><i class="bi bi-camera-video"></i> 课程视频</a>
+<a class="nav-link" href="/teacher/profile"><i class="bi bi-person-circle"></i> 个人信息</a>
+{% else %}
+<a class="nav-link" href="/"><i class="bi bi-speedometer2"></i> 首页概览</a>
+<a class="nav-link" href="/student/scores"><i class="bi bi-bar-chart"></i> 我的成绩</a>
+<a class="nav-link" href="/student/rp"><i class="bi bi-award"></i> 奖惩记录</a>
+<a class="nav-link" href="/student/apply"><i class="bi bi-arrow-left-right"></i> 申请中心</a>
+<a class="nav-link" href="/student/enroll"><i class="bi bi-plus-circle"></i> 选课中心</a>
+<a class="nav-link" href="/student/videos"><i class="bi bi-camera-video"></i> 课程视频</a>
+<a class="nav-link" href="/student/profile"><i class="bi bi-person-circle"></i> 个人信息</a>
+{% endif %}
+</nav></div>{% endif %}
+<div class="main">
+{% with m=get_flashed_messages(with_categories=true) %}
+{% if m %}{% for c,msg in m %}<div class="alert alert-{{c}} alert-dismissible fade show">{{msg}}<button class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+{% endwith %}
+{% block content %}{% endblock %}
+</div></div>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}{% endblock %}
+</body></html>

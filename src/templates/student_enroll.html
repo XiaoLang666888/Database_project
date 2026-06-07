@@ -1,0 +1,80 @@
+<!-- 选课中心 — 按学期折叠，类型子分组，支持多教师班选课 -->
+{% extends "base.html" %}{% block title %}选课中心{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-plus-circle"></i> 选课中心
+  <small class="text-muted fs-6">第{{week}}教学周 · 当前开放选课</small>
+</h4>
+
+{% set semesters = [] %}
+{% for c in available %}{% if c[5] not in semesters %}{% set _ = semesters.append(c[5]) %}{% endif %}{% endfor %}
+
+{% for sem in semesters %}
+<div class="card mb-3 border-0 shadow-sm">
+  <div class="card-header bg-light fw-bold d-flex justify-content-between" data-bs-toggle="collapse" data-bs-target="#sem_{{ loop.index }}" style="cursor:pointer">
+    <span>📅 {{ sem }}</span>
+    {% set cnt = namespace(n=0) %}{% for c in available %}{% if c[5]==sem %}{% set cnt.n = cnt.n + 1 %}{% endif %}{% endfor %}
+    <span class="text-muted" style="font-size:13px">{{ cnt.n }}门课程</span>
+  </div>
+  <div id="sem_{{ loop.index }}" class="collapse">
+    <div class="card-body p-0">
+      {% set types = ['通修','专业必修','专业选修','自由选修'] %}
+      {% for tp in types %}
+      {% set has_course = namespace(f=false) %}
+      {% for c in available %}{% if c[5]==sem and c[6]==tp %}{% set has_course.f = true %}{% endif %}{% endfor %}
+      {% if has_course.f %}
+      <div class="px-3 pt-2 pb-1" style="font-size:13px;color:#64748b"><strong>
+        {% if tp=='通修' %}📘{% elif tp=='专业必修' %}📕{% elif tp=='专业选修' %}📙{% else %}📗{% endif %} {{ tp }}
+      </strong></div>
+      <table class="table table-hover table-sm mb-0">
+        <thead><tr><th>课程</th><th style="width:60px">学分</th><th style="width:40px">班</th><th style="width:90px">操作</th></tr></thead>
+        <tbody>
+        {# Group by course name; store sections as JSON in data attr #}
+        {% set shown = namespace(list=[]) %}
+        {% for c in available %}
+        {% if c[5]==sem and c[6]==tp and c[1] not in shown.list %}
+        {% set _ = shown.list.append(c[1]) %}
+        {% set secs = [] %}
+        {% for c2 in available %}{% if c2[5]==sem and c2[6]==tp and c2[1]==c[1] %}
+        {% set _ = secs.append('{"cno":' + c2[0]|string + ',"t":"' + (c2[7] or '未分配') + '"}') %}
+        {% endif %}{% endfor %}
+        <tr>
+          <td>{{ c[1] }}</td><td>{{ c[2] }}</td>
+          <td><span class="badge bg-secondary">{{ secs|length }}</span></td>
+          <td><button class="btn btn-success btn-sm" data-sections='[{{ secs|join(',') }}]' onclick="showEnroll(this)">选课</button></td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+        </tbody></table>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% if not available %}<div class="card"><div class="card-body text-muted text-center">暂无可选课程</div></div>{% endif %}
+
+<!-- Enroll Modal -->
+<div class="modal fade" id="enrollModal"><div class="modal-dialog modal-sm"><div class="modal-content">
+<div class="modal-header"><h6 id="enrollTitle">选择授课教师</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<div class="modal-body">
+  <p class="mb-2"><strong id="enrollCourse"></strong> <small class="text-muted" id="enrollCredit"></small></p>
+  <div id="enrollTeachers"></div>
+</div>
+<div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button></div>
+</div></div></div>
+
+<script>
+function showEnroll(btn){
+    var sections=JSON.parse(btn.getAttribute('data-sections'));
+    var row=btn.closest('tr');
+    document.getElementById('enrollCourse').textContent=row.cells[0].textContent;
+    document.getElementById('enrollCredit').textContent=row.cells[1].textContent+'学分';
+    var html='';
+    for(var i=0;i<sections.length;i++){
+        html+='<form method="POST" action="/student/course/enroll" class="mb-2"><input type="hidden" name="cno" value="'+sections[i].cno+'"><button class="btn btn-outline-primary btn-sm w-100 text-start">👨‍🏫 '+sections[i].t+'</button></form>';
+    }
+    document.getElementById('enrollTeachers').innerHTML=html;
+    new bootstrap.Modal(document.getElementById('enrollModal')).show();
+}
+</script>
+{% endblock %}

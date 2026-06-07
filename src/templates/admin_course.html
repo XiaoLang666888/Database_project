@@ -1,0 +1,72 @@
+<!-- 课程管理 — 按学期折叠，每学期内按类型(通修/专业必修/专业选修/自由选修)分组 -->
+{% extends "base.html" %}{% block title %}课程管理{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-book"></i> 课程管理</h4>
+<button class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addM"><i class="bi bi-plus-circle"></i> 新增课程</button>
+
+{% set semesters = [] %}
+{% for c in courses %}{% if c[5] not in semesters %}{% set _ = semesters.append(c[5]) %}{% endif %}{% endfor %}
+
+{% for sem in semesters %}
+<div class="card mb-3 border-0 shadow-sm">
+  <div class="card-header bg-light fw-bold d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#sem_{{ loop.index }}" style="cursor:pointer">
+    <span>📅 {{ sem }}</span>
+    {% set cnt = namespace(n=0) %}{% for c in courses %}{% if c[5]==sem %}{% set cnt.n = cnt.n + 1 %}{% endif %}{% endfor %}
+    <span class="text-muted" style="font-size:13px">{{ cnt.n }}门课程</span>
+  </div>
+  <div id="sem_{{ loop.index }}" class="collapse">
+    <div class="card-body p-0">
+      {% set types = ['通修','专业必修','专业选修','自由选修'] %}
+      {% for tp in types %}
+      {% set has_course = namespace(f=false) %}
+      {% for c in courses %}{% if c[5]==sem and c[6]==tp %}{% set has_course.f = true %}{% endif %}{% endfor %}
+      {% if has_course.f %}
+      <div class="px-3 pt-2 pb-1" style="font-size:13px;color:#64748b"><strong>
+        {% if tp=='通修' %}📘{% elif tp=='专业必修' %}📕{% elif tp=='专业选修' %}📙{% else %}📗{% endif %} {{ tp }}
+      </strong></div>
+      <table class="table table-hover table-sm mb-0">
+        <thead><tr><th style="width:60px">编号</th><th>名称</th><th style="width:60px">学分</th><th style="width:80px">教师</th><th style="width:80px">操作</th></tr></thead>
+        <tbody>
+        {% for c in courses %}
+        {% if c[5]==sem and c[6]==tp %}
+        <tr>
+          <td><code>{{ c[0] }}</code></td>
+          <td>{{ c[1] }}</td>
+          <td><span class="badge bg-primary">{{ c[2] }}</span></td>
+          <td><small>{{ c[7] or '-' }}</small></td>
+          <td>
+            <button class="btn btn-outline-warning btn-sm me-1" onclick="editCourse('{{ c[0] }}','{{ c[1] }}','{{ c[2] }}','{{ c[3] or '' }}','{{ c[4] or '' }}','{{ c[5] }}','{{ c[6] }}')"><i class="bi bi-pencil"></i></button>
+            <a href="/admin/course/del/{{ c[0] }}" class="btn btn-outline-danger btn-sm" onclick="return confirm('确定删除课程「{{ c[1] }}」？')"><i class="bi bi-trash"></i></a>
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+        </tbody></table>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<div class="modal fade" id="addM"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>新增课程</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form method="POST" action="/admin/course/add"><div class="modal-body"><div class="mb-3"><label>课程名称</label><input name="name" class="form-control" required></div><div class="row"><div class="col-6"><label>学分</label><input type="number" name="credit" class="form-control" value="3" required></div><div class="col-6"><label>学时</label><input type="number" name="hours" class="form-control" value="48"></div></div><div class="mb-3 mt-2"><label>类型</label><select name="type" class="form-select"><option value="专业必修">专业必修</option><option value="专业选修">专业选修</option><option value="通修">通修</option><option value="自由选修">自由选修</option></select></div><div class="mb-3"><label>学期</label><select name="semester" class="form-select"><option value="2025-2026春">2025-2026春（当前）</option><option value="2025-2026秋">2025-2026秋</option><option value="2024-2025春">2024-2025春</option><option value="2024-2025秋">2024-2025秋</option><option value="2026夏">2026夏</option><option value="2026-2027秋">2026-2027秋</option></select></div><div class="mb-3"><label>授课教师</label><select name="tno" class="form-select"><option value="">未分配</option>{% for t in teachers %}<option value="{{ t[0] }}">{{ t[1] }}</option>{% endfor %}</select></div></div><div class="modal-footer"><button class="btn btn-primary">添加</button></div></form></div></div></div>
+
+<!-- 编辑课程 Modal -->
+<div class="modal fade" id="editM"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>编辑课程 #<span id="editCno"></span></h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form id="editForm" method="POST"><div class="modal-body"><div class="mb-3"><label>课程名称</label><input name="name" id="editName" class="form-control" required></div><div class="row"><div class="col-6"><label>学分</label><input type="number" name="credit" id="editCredit" class="form-control" value="3" required></div><div class="col-6"><label>学时</label><input type="number" name="hours" id="editHours" class="form-control" value="48"></div></div><div class="mb-3 mt-2"><label>类型</label><select name="type" id="editType" class="form-select"><option value="专业必修">专业必修</option><option value="专业选修">专业选修</option><option value="通修">通修</option><option value="自由选修">自由选修</option></select></div><div class="mb-3"><label>学期</label><select name="semester" id="editSemester" class="form-select"><option value="2025-2026春">2025-2026春</option><option value="2025-2026秋">2025-2026秋</option><option value="2024-2025春">2024-2025春</option><option value="2024-2025秋">2024-2025秋</option><option value="2026夏">2026夏</option><option value="2026-2027秋">2026-2027秋</option></select></div><div class="mb-3"><label>授课教师</label><select name="tno" id="editTno" class="form-select"><option value="">未分配</option>{% for t in teachers %}<option value="{{ t[0] }}">{{ t[1] }}</option>{% endfor %}</select></div></div><div class="modal-footer"><button class="btn btn-warning">保存修改</button></div></form></div></div></div>
+
+<script>
+function editCourse(cno,name,credit,hours,tno,semester,type){
+    document.getElementById('editForm').action='/admin/course/edit/'+cno;
+    document.getElementById('editCno').textContent=cno;
+    document.getElementById('editName').value=name;
+    document.getElementById('editCredit').value=credit;
+    document.getElementById('editHours').value=hours||'';
+    document.getElementById('editType').value=type;
+    document.getElementById('editSemester').value=semester;
+    var sel=document.getElementById('editTno');
+    for(var i=0;i<sel.options.length;i++){if(sel.options[i].value==(tno||'')){sel.selectedIndex=i;break;}}
+    new bootstrap.Modal(document.getElementById('editM')).show();
+}
+</script>
+{% endblock %}

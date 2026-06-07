@@ -1,0 +1,141 @@
+<!-- 学生管理 — 年级→班级两层折叠，支持新增/删除/置课 -->
+{% extends "base.html" %}{% block title %}学生管理{% endblock %}
+{% block content %}<h4><i class="bi bi-person-badge"></i> 学生管理</h4>
+<button class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addM"><i class="bi bi-plus-circle"></i> 新增学生</button>
+
+{% set grades = [] %}
+{% for s in students %}
+  {% set g = '已毕业' if s[4] in ['graduated','withdrawn'] else ((2026 - s[5])|string + '年级' if s[5] else '未知') %}
+  {% if g not in grades %}{% set _ = grades.append(g) %}{% endif %}
+{% endfor %}
+
+{% for g in grades %}
+<div class="card mb-3 border-0 shadow-sm">
+  <div class="card-header bg-light fw-bold d-flex justify-content-between" data-bs-toggle="collapse" data-bs-target="#sg_{{ loop.index }}" style="cursor:pointer">
+    <span>📚 {{ g }}</span>
+    {% set cnt = namespace(n=0) %}
+    {% for s in students %}{% set sg = '已毕业' if s[4] in ['graduated','withdrawn'] else ((2026 - s[5])|string + '年级' if s[5] else '未知') %}{% if sg==g %}{% set cnt.n = cnt.n + 1 %}{% endif %}{% endfor %}
+    <span class="text-muted" style="font-size:13px">{{ cnt.n }}人 <i class="bi bi-chevron-down"></i></span>
+  </div>
+  <div id="sg_{{ loop.index }}" class="collapse">
+    <div class="card-body p-0">
+      {# Group by class within this grade #}
+      {% set classes_in_grade = [] %}
+      {% for s in students %}
+        {% set sg = '已毕业' if s[4] in ['graduated','withdrawn'] else ((2026 - s[5])|string + '年级' if s[5] else '未知') %}
+        {% set cname = s[10] if s[10] else '(未分班)' %}
+        {% if sg==g and cname not in classes_in_grade %}{% set _ = classes_in_grade.append(cname) %}{% endif %}
+      {% endfor %}
+      {% for cn in classes_in_grade %}
+      <div class="border-bottom">
+        <div class="px-3 py-1 bg-white" style="font-size:13px;color:#64748b"><strong>🏫 {{ cn }}</strong></div>
+        <table class="table table-hover table-sm mb-0">
+          <thead class="table-light"><tr><th>学号</th><th>姓名</th><th>性别</th><th>状态</th><th>电话</th><th>邮箱</th><th>操作</th></tr></thead>
+          <tbody>
+          {% for s in students %}
+          {% set sg = '已毕业' if s[4] in ['graduated','withdrawn'] else ((2026 - s[5])|string + '年级' if s[5] else '未知') %}
+          {% set cname = s[10] if s[10] else '(未分班)' %}
+          {% if sg==g and cname==cn %}
+          <tr><td>{{ s[0] }}</td><td>{{ s[1] }}</td><td>{{ '男' if s[2]=='M' else '女' }}</td>
+          <td><span class="badge {% if s[4]=='active' %}bg-success{% elif s[4]=='suspended' %}bg-warning{% else %}bg-secondary{% endif %}">{{ {'active':'在读','suspended':'休学','withdrawn':'退学','graduated':'毕业'}.get(s[4],s[4]) }}</span></td>
+          <td>{{ s[6] or '-' }}</td><td>{{ s[7] or '-' }}</td>
+          <td>
+            <button class="btn btn-outline-warning btn-action me-1" onclick="editStudent('{{ s[0] }}','{{ s[1] }}','{{ s[2] }}','{{ s[3] or '' }}','{{ s[4] }}','{{ s[5] or '' }}','{{ s[6] or '' }}','{{ s[7] or '' }}','{{ s[9] or '' }}')" title="编辑"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-outline-info btn-action me-1" onclick="openCourseMgr('{{ s[0] }}','{{ s[1] }}')" title="置课"><i class="bi bi-journal-plus"></i></button>
+            <a href="/admin/student/del/{{ s[0] }}" class="btn btn-outline-danger btn-action" onclick="return confirm('确定删除学生「{{ s[1] }}」？')"><i class="bi bi-trash"></i></a></td></tr>
+          {% endif %}
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<div class="modal fade" id="addM"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5>新增学生</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form method="POST" action="/admin/student/add"><div class="modal-body"><div class="row g-2"><div class="col-4"><label>学号</label><input name="sno" class="form-control" required></div><div class="col-4"><label>姓名</label><input name="name" class="form-control" required></div><div class="col-2"><label>性别</label><select name="gender" class="form-select"><option value="M">男</option><option value="F">女</option></select></div><div class="col-2"><label>出生日期</label><input type="date" name="birth" class="form-control"></div><div class="col-3"><label>学籍状态</label><select name="status" class="form-select"><option value="active">在读</option><option value="suspended">休学</option><option value="withdrawn">退学</option><option value="graduated">毕业</option></select></div><div class="col-3"><label>入学年份</label><input name="enroll_year" class="form-control" value="2023"></div><div class="col-3"><label>电话</label><input name="phone" class="form-control"></div><div class="col-3"><label>邮箱</label><input name="email" class="form-control"></div><div class="col-6"><label>班级</label><select name="class_id" class="form-select"><option value="">未分配</option>{% for c in classes %}<option value="{{ c[0] }}">{{ c[1] }}</option>{% endfor %}</select></div></div></div><div class="modal-footer"><button class="btn btn-primary">添加</button></div></form></div></div></div>
+
+<!-- 置课 Modal -->
+<div class="modal fade" id="courseMgrM"><div class="modal-dialog modal-lg"><div class="modal-content">
+<div class="modal-header"><h6>📋 置课管理 - <span id="cmSname"></span> <small class="text-muted" id="cmSno"></small></h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<div class="modal-body">
+  <div class="row">
+    <div class="col-8">
+      <h6 class="mb-2">当前课程</h6>
+      <div id="cmCurrent" class="mb-2"></div>
+    </div>
+    <div class="col-4 border-start">
+      <h6 class="mb-2">添加课程</h6>
+      <form id="cmAddForm" method="POST" action="">
+        <select name="cno" class="form-select form-select-sm mb-2" id="cmAvailable"></select>
+        <button class="btn btn-sm btn-success w-100">确认添加</button>
+      </form>
+      <div id="cmNoAvailable" class="text-muted mt-1" style="font-size:12px;display:none">该生已选全部课程</div>
+    </div>
+  </div>
+</div></div></div></div>
+
+<script>
+function openCourseMgr(sno,sname){
+    document.getElementById('cmSno').textContent=sno;
+    document.getElementById('cmSname').textContent=sname;
+    document.getElementById('cmAddForm').action='/admin/student/'+sno+'/enroll';
+    fetch('/admin/api/student/'+sno+'/courses').then(r=>r.json()).then(d=>{
+        // Current courses
+        var html='';
+        if(d.courses.length===0){html='<div class="text-muted py-2" style="font-size:13px">暂无课程</div>';}
+        else{
+            html='<table class="table table-sm table-hover"><thead><tr><th>课程</th><th>学分</th><th>学期</th><th>成绩</th><th></th></tr></thead><tbody>';
+            d.courses.forEach(c=>{
+                var score=c.score!==null?c.score:'-';
+                var sc='';
+                if(c.score!==null){sc=c.score>=90?'text-success':(c.score>=60?'':'text-danger');}
+                html+='<tr><td>'+c.name+' <span class="badge bg-secondary" style="font-size:10px">'+c.type+'</span></td><td>'+c.credit+'</td><td style="font-size:12px">'+c.semester+'</td><td class="fw-bold '+sc+'">'+score+'</td><td><a href="/admin/student/'+sno+'/drop/'+c.cno+'" class="btn btn-outline-danger btn-sm" onclick="return confirm(\'确定退课?'+c.name+'?\')"><i class="bi bi-x-circle"></i></a></td></tr>';
+            });
+            html+='</tbody></table>';
+        }
+        document.getElementById('cmCurrent').innerHTML=html;
+        // Available courses
+        var avail=document.getElementById('cmAvailable');
+        var noAvail=document.getElementById('cmNoAvailable');
+        avail.innerHTML='';
+        if(d.available.length===0){avail.style.display='none';noAvail.style.display='';}
+        else{avail.style.display='';noAvail.style.display='none';
+            d.available.forEach(c=>{avail.innerHTML+='<option value="'+c.cno+'">'+c.name+' ('+c.semester+','+c.credit+'学分)</option>';});
+        }
+    });
+    new bootstrap.Modal(document.getElementById('courseMgrM')).show();
+}
+
+function editStudent(sno,name,gender,birth,status,ey,phone,email,cid){
+    document.getElementById('editForm').action='/admin/student/edit/'+sno;
+    document.getElementById('editSno').textContent=sno;
+    document.getElementById('editSnoInput').value=sno;
+    document.getElementById('editName').value=name;
+    document.getElementById('editGender').value=gender;
+    document.getElementById('editBirth').value=birth;
+    document.getElementById('editStatus').value=status;
+    document.getElementById('editEY').value=ey;
+    document.getElementById('editPhone').value=phone;
+    document.getElementById('editEmail').value=email;
+    var sel=document.getElementById('editClass');
+    for(var i=0;i<sel.options.length;i++){if(sel.options[i].value==cid){sel.selectedIndex=i;break;}}
+    new bootstrap.Modal(document.getElementById('editM')).show();
+}
+</script>
+
+<!-- 编辑学生 Modal -->
+<div class="modal fade" id="editM"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5>编辑学生 - <span id="editSno"></span></h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<form method="POST" id="editForm" action=""><div class="modal-body"><input type="hidden" name="sno" id="editSnoInput"><div class="row g-2">
+<div class="col-4"><label>姓名</label><input name="name" id="editName" class="form-control" required></div>
+<div class="col-2"><label>性别</label><select name="gender" id="editGender" class="form-select"><option value="M">男</option><option value="F">女</option></select></div>
+<div class="col-2"><label>出生日期</label><input type="date" name="birth" id="editBirth" class="form-control"></div>
+<div class="col-2"><label>学籍状态</label><select name="status" id="editStatus" class="form-select"><option value="active">在读</option><option value="suspended">休学</option><option value="withdrawn">退学</option><option value="graduated">毕业</option></select></div>
+<div class="col-2"><label>入学年份</label><input name="enroll_year" id="editEY" class="form-control"></div>
+<div class="col-3"><label>电话</label><input name="phone" id="editPhone" class="form-control"></div>
+<div class="col-3"><label>邮箱</label><input name="email" id="editEmail" class="form-control"></div>
+<div class="col-6"><label>班级</label><select name="class_id" id="editClass" class="form-select"><option value="">未分配</option>{% for c in classes %}<option value="{{ c[0] }}">{{ c[1] }}</option>{% endfor %}</select></div>
+</div></div><div class="modal-footer"><button class="btn btn-warning">保存修改</button></div></form></div></div></div>
+{% endblock %}

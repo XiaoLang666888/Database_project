@@ -1,0 +1,15 @@
+<!-- 教师个人信息 — 查看个人资料与教学统计 -->
+{% extends "base.html" %}{% block title %}个人信息{% endblock %}
+{% block content %}<h4 class="mb-3"><i class="bi bi-person-circle"></i> 个人信息</h4>
+<div class="row"><div class="col-md-6"><div class="card"><div class="card-header"><strong>基本资料</strong></div>
+<table class="table mb-0"><tr><td style="width:100px">编号</td><td>{{ teacher[0] }}</td></tr><tr><td>姓名</td><td>{{ teacher[1] }}</td></tr><tr><td>性别</td><td>{{ '男' if teacher[2]=='M' else '女' }}</td></tr><tr><td>职称</td><td>{{ teacher[3] or '未填写' }}</td></tr></table></div></div>
+<div class="col-md-6"><div class="card"><div class="card-header"><strong>教学统计</strong></div>
+<div class="card-body"><div class="row"><div class="col-6 text-center"><div class="fs-2 fw-bold text-primary">{{ course_count }}</div><div class="text-muted">教授课程</div></div><div class="col-6 text-center"><div class="fs-2 fw-bold text-success">{{ student_count }}</div><div class="text-muted">授课学生</div></div></div></div></div>
+<div class="card mt-3"><div class="card-header"><strong><i class="bi bi-key text-warning"></i> 修改密码</strong></div>
+<div class="card-body"><form method="POST" action="/change_password">
+<div class="mb-2"><input type="password" name="old_password" class="form-control form-control-sm" placeholder="原密码" required></div>
+<div class="mb-2"><input type="password" name="new_password" class="form-control form-control-sm" placeholder="新密码（至少4位）" required></div>
+<div class="mb-2"><input type="password" name="confirm_password" class="form-control form-control-sm" placeholder="确认新密码" required></div>
+<button class="btn btn-warning btn-sm w-100"><i class="bi bi-key"></i> 修改密码</button>
+</form></div></div></div></div>
+{% endblock %}
